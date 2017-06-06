@@ -30,13 +30,7 @@ class Context {
 
         template <typename TService, typename TImpl, typename ... TDeps>
         void RegisterShared() {
-            std::function<std::shared_ptr<TImpl> (const Context &)> resolver = nullptr;
-
-            if constexpr (sizeof...(TDeps) > 0)
-                resolver = [] (const Context & ctx) { return std::make_shared<TImpl>(ctx.Resolve<TDeps>()...); };
-            else
-                resolver = [] (const Context & ctx) { return std::make_shared<TImpl>(); };
-
+            auto resolver = [] (const Context & ctx) { return std::make_shared<TImpl>(ctx.Resolve<TDeps>()...); };
             Register<TService, TImpl>(resolver);
         }
 
@@ -48,13 +42,7 @@ class Context {
 
         template <typename TService, typename ... TDeps>
         void RegisterInstance(TDeps ... args) {
-            std::shared_ptr<TService> instance = nullptr;
-
-            if constexpr (sizeof...(TDeps) > 0)
-                instance = std::make_shared<TService>(args...);
-            else
-                instance = std::make_shared<TService>();
-
+            auto instance = std::make_shared<TService>(args...);
             RegisterInstance<TService>(instance);
         }
 
@@ -81,13 +69,7 @@ class Context {
 
         template <typename TService, typename ... TDeps>
         void Register() {
-            std::function<TService (const Context &)> resolver;
-
-            if constexpr (sizeof...(TDeps) > 0)
-                resolver = [] (const Context & ctx) { return TService(ctx.Resolve<TDeps>()...); };
-            else
-                resolver = [] (const Context & ctx) { return TService(); };
-
+            auto resolver = [] (const Context & ctx) { return TService(ctx.Resolve<TDeps>()...); };
             Register<TService>(resolver);
         }
 
