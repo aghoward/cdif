@@ -59,7 +59,7 @@ The signature of the interface registration method is:
 
 ```cpp
 template <typename TService, typename TImpl, typename ... TDeps>
-void RegisterShared();
+void RegisterShared(const std::string & name = "");
 ```
 
 `TService` is the interface which must be requested by a dependency for
@@ -87,7 +87,7 @@ use the `Register` method, its signature is:
 
 ```cpp
 template <typename TService, typename ... TDeps>
-void Register();
+void Register(const std::string & name = "");
 ```
 
 In this case, `TService` is the concrete class we want to register, and `TDeps`
@@ -122,10 +122,10 @@ signature:
 
 ```cpp
 template <typename TService, typename ... TDeps>
-void RegisterFactory(const std::function<TService (TDeps...)> & factory);
+void RegisterFactory(const std::function<TService (TDeps...)> & factory, const std::string & name = "");
 
 template <typename TService>
-void RegisterFactory(const std::function<TService ()> & factory);
+void RegisterFactory(const std::function<TService ()> & factory, const std::string & name = "");
 ```
 
 The factory function will be copied internally, so the original function does
@@ -153,10 +153,10 @@ the `std::shared_ptr` for you. The two signatures are as show below:
 
 ```cpp
 template <typename TService>
-void RegisterInstance(std::shared_ptr<TService> & instance);
+void RegisterInstance(std::shared_ptr<TService> & instance, const std::string & name = "");
 
 template <typename TService, typename ... TDeps>
-void RegisterInstance(TDeps ... args);
+void RegisterInstance(TDeps ... args, const std::string & name = "");
 ```
 
 After calling this, every request for a `std::shared_ptr<TService>` will result
@@ -171,7 +171,7 @@ around the `Register` method which has the following signature:
 
 ```cpp
 template <typename TService>
-void Register(const std::function<TService (const Context & ctx)> & serviceResolver);
+void Register(const std::function<TService (const Context & ctx)> & serviceResolver, const std::string & name = "");
 ```
 
 Note that if you use this method to register a service, the function which you
@@ -183,7 +183,24 @@ There is also a `Register` method for interfaces with the following signature:
 
 ```cpp
 template <typename TService, typename TImpl>
-void Register(const std::function<std::shared_ptr<TImpl> (const Context &)> & resolver);
+void Register(const std::function<std::shared_ptr<TImpl> (const Context &)> & resolver, const std::string & name = "");
+```
+
+### Named Registrations
+
+You may have noticed that all the above mentioned methods of registration take
+an optional parameter `const std::string & name`. By default, all registrations
+that do not specify this value, will be registered under the name provided by
+calling `typeid(TService).name()`. There may only be one registration associated
+with a particular name at a time.
+
+Specifying a value for `name` when registering a component allows more than one
+registration for a given `TService`. Named components can be resolved by
+specifying a matching name to the `Resolve` method:
+
+```cpp
+template <typename TService>
+TService Resolve(const std::string & name) const;
 ```
 
 ## Registration Modules
@@ -233,15 +250,15 @@ I get a `std::unique_ptr<TInterface>`? Due to the underlying implementation, the
 short answer is, no. Registrations rely on functions returning `std::any` and
 `std::unique_ptr` does not comply with the restrictions of `std::any`. I simply
 could not come up with a scheme that would allow me to safely register a
-`std::unique_ptr` in a safe way while still having some useful-ness. 
+`std::unique_ptr` while still having some useful-ness. 
 
 Only a single implementation can be bound to a given interface. I could not come
 up with a meaningful way of specifying which implementation you would want when
-resolving an interface which has multiple implementations. Perhaps name-based
-registrations will help with this when they are implemented. Note that the side
+resolving an interface which has multiple implementations. Note that the side
 effect of this problem is that any interface which is registered with two or
 more concrete implementations will have a single registration which is the last
-implementation that was registered.
+implementation that was registered. Of course, the exception to this is to
+register multiple implementations with differing names.
 
 Most of these registrations result in a new instance of `TService` being created
 for each call to `Resolve<TService>()`. That is the lifetime scope of these
@@ -252,7 +269,7 @@ probably be solved with having a single container per thread.
 
 What's left to do?
 
- - [ ] Name based registrations. Allow giving a registration a unique name, and
+ - [x] Name based registrations. Allow giving a registration a unique name, and
  allow resolving services using these unique names.
  - [ ] Thread safety. The internal usage of `std::map` is probably not done in a
  thread-safe manner, I'll need to investigate this futher.
