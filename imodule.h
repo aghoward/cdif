@@ -1,9 +1,9 @@
 #pragma once
 
-#include "context.h"
+#include "container.h"
 
 class IModule {
     public:
-        virtual void Load(Context & ctx) = 0;
+        virtual void Load(Container & ctx) = 0;
 };
 

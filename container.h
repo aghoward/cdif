@@ -8,13 +8,13 @@
 #include <typeinfo>
 #include <type_traits>
 
-class Context;
+class Container;
 
 #include "imodule.h"
 #include "registrar.h"
 #include "registration.h"
 
-class Context {
+class Container {
     private:
         std::unique_ptr<Registrar> _registrar;
 
@@ -27,25 +27,25 @@ class Context {
         }
 
     public:
-        Context(): _registrar(std::move(std::make_unique<Registrar>())) {};
+        Container(): _registrar(std::move(std::make_unique<Registrar>())) {};
 
         template <typename TService, typename TImpl>
-        void Register(const std::function<std::shared_ptr<TImpl> (const Context &)> & resolver, const std::string & name = "") {
+        void Register(const std::function<std::shared_ptr<TImpl> (const Container &)> & resolver, const std::string & name = "") {
             static_assert(std::is_base_of<TService, TImpl>::value, "Implementation must be derived from Service");
-            auto serviceResolver = [resolver] (const Context & ctx) { return static_cast<std::shared_ptr<TService>>(resolver(ctx)); };
+            auto serviceResolver = [resolver] (const Container & ctx) { return static_cast<std::shared_ptr<TService>>(resolver(ctx)); };
 
             Register<std::shared_ptr<TService>>(serviceResolver, name);
         }
 
         template <typename TService, typename TImpl, typename ... TDeps>
         void RegisterShared(const std::string & name = "") {
-            auto resolver = [] (const Context & ctx) { return std::make_shared<TImpl>(ctx.Resolve<TDeps>()...); };
+            auto resolver = [] (const Container & ctx) { return std::make_shared<TImpl>(ctx.Resolve<TDeps>()...); };
             Register<TService, TImpl>(resolver, name);
         }
 
         template <typename TService>
         void RegisterInstance(const std::shared_ptr<TService> & instance, const std::string & name = "") {
-            auto resolver = [instance] (const Context & ctx) { return instance; };
+            auto resolver = [instance] (const Container & ctx) { return instance; };
             Register<std::shared_ptr<TService>>(resolver, name);
         }
 
@@ -57,13 +57,13 @@ class Context {
 
         template <typename TService, typename ... TArgs>
         void RegisterFactory(const std::function<TService(TArgs...)> & factory, const std::string & name = "") {
-            auto serviceResolver = [factory] (const Context & ctx) { return factory; };
+            auto serviceResolver = [factory] (const Container & ctx) { return factory; };
             Register<std::function<TService(TArgs...)>>(serviceResolver, name);
         }
 
         template <typename TService>
         void RegisterFactory(const std::function<TService()> & factory, const std::string & name = "") {
-            auto serviceResolver = [factory] (const Context & ctx) { return factory; };
+            auto serviceResolver = [factory] (const Container & ctx) { return factory; };
             Register<std::function<TService()>>(serviceResolver, name);
         }
 
@@ -78,12 +78,12 @@ class Context {
 
         template <typename TService, typename ... TDeps>
         void Register(const std::string & name = "") {
-            auto resolver = [] (const Context & ctx) { return TService(ctx.Resolve<TDeps>()...); };
+            auto resolver = [] (const Container & ctx) { return TService(ctx.Resolve<TDeps>()...); };
             Register<TService>(resolver, name);
         }
 
         template <typename TService>
-        void Register(const std::function<TService (const Context &)> & serviceResolver, const std::string & name = "") {
+        void Register(const std::function<TService (const Container &)> & serviceResolver, const std::string & name = "") {
             _registrar->Register<TService>(serviceResolver, GetServiceName<TService>(name));
         }
 

@@ -6,7 +6,7 @@
 #include <string>
 #include <utility>
 
-#include "context.h"
+#include "container.h"
 #include "registration.h"
 
 class Registrar { 
@@ -27,7 +27,7 @@ class Registrar {
         }
 
         template <typename TService>
-        void Register(const std::function<TService (const Context &)> & serviceResolver, const std::string & name) {
+        void Register(const std::function<TService (const Container &)> & serviceResolver, const std::string & name) {
             auto registration = std::make_unique<Registration>(serviceResolver);
             _registrations.insert_or_assign(name, std::move(registration));
         }
