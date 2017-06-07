@@ -2,8 +2,9 @@
 
 #include "container.h"
 
-class IModule {
-    public:
-        virtual void Load(Container & ctx) = 0;
-};
-
+namespace cdif {
+    class IModule {
+        public:
+            virtual void Load(cdif::Container & ctx) = 0;
+    };
+}
