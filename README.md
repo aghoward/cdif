@@ -41,12 +41,12 @@ dependency.
 
  
 ```cpp
-Context ctx = Context();
+cdif::Container ctx = cdif::Container();
 ctx.RegisterShared<I, B>();
 ctx.RegisterShared<I2, A, std::shared_ptr<I>>();
 ```
 
-In this example, we first create a `Context` object which is the container and
+In this example, we first create a `cdif::Container` object which is the container and
 is responsible for both registrations and resolution. Registrations are unique
 to the instance of the container, so registering a service in one container does
 not register it in another. Next, the `RegisterShared` method is used associate
@@ -96,7 +96,7 @@ is a parameter pack of all the types required to create an instance of
 following registrations:
 
 ```cpp
-Context ctx = Context();
+cdif::Container ctx = cdif::Container();
 ctx.RegisterShared<I, B>();
 ctx.Register<A, std::shared_ptr<I>>();
 ```
@@ -129,7 +129,7 @@ void RegisterFactory(const std::function<TService ()> & factory, const std::stri
 ```
 
 The factory function will be copied internally, so the original function does
-not need to outlive the `Context` instance. The only difference between the two
+not need to outlive the `cdif::Container` instance. The only difference between the two
 signatures is that one of the registered functions can take any number of
 arguments, and the other takes none. This can be used as shown below:
 
@@ -171,7 +171,7 @@ around the `Register` method which has the following signature:
 
 ```cpp
 template <typename TService>
-void Register(const std::function<TService (const Context & ctx)> & serviceResolver, const std::string & name = "");
+void Register(const std::function<TService (const cdif::Container & ctx)> & serviceResolver, const std::string & name = "");
 ```
 
 Note that if you use this method to register a service, the function which you
@@ -183,7 +183,7 @@ There is also a `Register` method for interfaces with the following signature:
 
 ```cpp
 template <typename TService, typename TImpl>
-void Register(const std::function<std::shared_ptr<TImpl> (const Context &)> & resolver, const std::string & name = "");
+void Register(const std::function<std::shared_ptr<TImpl> (const cdif::Container &)> & resolver, const std::string & name = "");
 ```
 
 ### Named Registrations
@@ -207,15 +207,16 @@ TService Resolve(const std::string & name) const;
 
 Now that we know how to create registrations, its time to look at how to
 separate all that "glue" code (in this case registrations) from the business
-code. For this you can create classes which implement the `IModule` interface:
+code. For this you can create classes which implement the `cdif::IModule` interface:
 
 ```cpp
-// This is defined in cdif/imodule.h
-
-class IModule {
-    public:
-        virtual void Load(Context & ctx) = 0;
-};
+// This is defined in imodule.h
+namespace cdif {
+    class IModule {
+        public:
+            virtual void Load(cdif::Container & ctx) = 0;
+    };
+}
 ```
 
 Implementations must have a default constructor. Implementing this interface
@@ -224,20 +225,20 @@ to separate all the details of dependencies away from your code containing
 logic. To make use of a module you can call the `RegisterModule` function:
 
 ```cpp
-Context ctx = Context();
+cdif::Container ctx = cdif::Container();
 ctx.RegisterModule<ModuleA>();
 ctx.RegisterModule<ModuleB>();
 ```
 
 You can register as many modules as you need and all the registrations contained
 within will be made. I tend to wrap even this setup code inside a
-`ContextFactory` object which registers all modules and returns a
-`std::unique_ptr<Context>` which reduces my `main` method to something similar
+`ContainerFactory` object which registers all modules and returns a
+`std::unique_ptr<cdif::Container>` which reduces my `main` method to something similar
 to:
 
 ```cpp
 int main () {
-    auto ctx = ContextFactory::Create();
+    auto ctx = ContainerFactory::Create();
     auto object = ctx->Resolve<MainObject>();
     object.DoWork();
 }
