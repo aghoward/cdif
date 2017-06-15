@@ -14,6 +14,14 @@ namespace cdif {
             Registration(std::function<std::any (const cdif::Container&)> resolver)
                 : _resolver(resolver) {};
 
+            virtual ~Registration() = default;
+
+            Registration(const Registration &) = default;
+            Registration & operator=(const Registration &) = default;
+            Registration(Registration &&) = default;
+            Registration & operator=(Registration &&) = default;
+
+
             template <typename T>
             T Resolve(const cdif::Container & ctx) const {
                 return std::any_cast<T>(_resolver(ctx));

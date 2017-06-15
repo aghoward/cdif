@@ -24,7 +24,17 @@ namespace cdif {
             }
 
         public:
-            Container(): _registrar(std::move(std::make_unique<cdif::Registrar>())) {};
+            Container() : _registrar(std::move(std::make_unique<cdif::Registrar>())) {};
+
+            virtual ~Container() = default;
+
+            Container(Container && other) : _registrar(std::move(other._registrar)) {};
+
+            Container & operator=(Container && other) {
+                if (this != &other)
+                    _registrar = std::move(other._registrar);
+                return *this;
+            }
 
             template <typename TService, typename TImpl>
             void Register(const std::function<std::shared_ptr<TImpl> (const cdif::Container &)> & resolver, const std::string & name = "") {

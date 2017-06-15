@@ -17,6 +17,16 @@ namespace cdif {
         public:
             Registrar() : _registrations(std::map<std::string, std::unique_ptr<cdif::Registration>>()) {};
 
+            virtual ~Registrar() = default;
+
+            Registrar(Registrar && other) : _registrations(std::move(other._registrations)) {};
+
+            Registrar & operator=(Registrar && other) {
+                if (this != &other)
+                    _registrations = std::move(other._registrations);
+                return *this;
+            }
+
             template <typename T>
             const std::unique_ptr<cdif::Registration> & GetRegistration(const std::string & name) const {
                 auto it = _registrations.find(name);
