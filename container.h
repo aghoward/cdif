@@ -8,18 +8,12 @@
 #include <typeinfo>
 #include <type_traits>
 
-namespace cdif {
-    class Container;
-}
-
-#include "imodule.h"
-#include "registrar.h"
-#include "registration.h"
+#include "cdif.h"
 
 namespace cdif {
     class Container {
         private:
-            std::unique_ptr<Registrar> _registrar;
+            std::unique_ptr<cdif::Registrar> _registrar;
 
             template <typename TService>
             const std::string GetServiceName(const std::string & name) const {
@@ -30,7 +24,7 @@ namespace cdif {
             }
 
         public:
-            Container(): _registrar(std::move(std::make_unique<Registrar>())) {};
+            Container(): _registrar(std::move(std::make_unique<cdif::Registrar>())) {};
 
             template <typename TService, typename TImpl>
             void Register(const std::function<std::shared_ptr<TImpl> (const cdif::Container &)> & resolver, const std::string & name = "") {

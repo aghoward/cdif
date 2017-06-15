@@ -3,11 +3,11 @@
 #include <functional>
 #include <map>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <utility>
 
-#include "container.h"
-#include "registration.h"
+#include "cdif.h"
 
 namespace cdif {
     class Registrar {
@@ -18,7 +18,7 @@ namespace cdif {
             Registrar() : _registrations(std::map<std::string, std::unique_ptr<cdif::Registration>>()) {};
 
             template <typename T>
-            const std::unique_ptr<Registration> & GetRegistration(const std::string & name) const {
+            const std::unique_ptr<cdif::Registration> & GetRegistration(const std::string & name) const {
                 auto it = _registrations.find(name);
 
                 if (it == _registrations.end())
