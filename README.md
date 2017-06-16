@@ -7,6 +7,20 @@ cdif is a light-weight header only dependency injection framework for C++ 17
 standard. This means that you will need to compile all code using cdif with the
 `--std=c++17` flag or your compiler's equivalent.
 
+## Notes on Compiling
+
+Being header only, cdif doesn't require compilation by itself. Obviously this
+means that your code will be compiling cdif into itself whenever you use it.
+cdif doesn't require any 3rd party libraries, but the thread-safety feature
+makes it rely on `pthread` so you'll need to link that when compiling.
+
+As mentioned above, you'll need to compile against the c++17 standard (for gcc
+7+ this is done with `--std=c++17`).
+
+To compile the tests you'll need a copy of googletest, and additionally will
+need to link `gtest` and `gtest_main`. If you have googletest installed all you
+should need to do is run `make` in the tests folder.
+
 ## Goals
 
  * Light-weight - Relies only on the standard library, there are no
@@ -24,7 +38,7 @@ cdif was designed to make use of constructor dependency injection, it won't do
 property injection. The most basic use case is resolve a
 `std::shared_ptr<IType>` where `IType` is an interface (pure virtual class). The
 container can also resolve concrete types (`Type`), factory functions
-(`std::function<TReturn()>`), and singletons (`std::unique_ptr<Type>`).
+(`std::function<TReturn()>`), and singletons (`std::shared_ptr<Type>`).
 
 ### Interface Resolution
 
@@ -253,24 +267,8 @@ short answer is, no. Registrations rely on functions returning `std::any` and
 could not come up with a scheme that would allow me to safely register a
 `std::unique_ptr` while still having some useful-ness. 
 
-Only a single implementation can be bound to a given interface. I could not come
-up with a meaningful way of specifying which implementation you would want when
-resolving an interface which has multiple implementations. Note that the side
-effect of this problem is that any interface which is registered with two or
-more concrete implementations will have a single registration which is the last
-implementation that was registered. Of course, the exception to this is to
-register multiple implementations with differing names.
-
 Most of these registrations result in a new instance of `TService` being created
-for each call to `Resolve<TService>()`. That is the lifetime scope of these
+for each call to `Resolve<TService>()`. That is, the lifetime scope of these
 registrations is instance per dependency. Of course, `RegisterInstance` is the
 exception to this fact. I have also considered implementing instance per thread,
-but I do not currently have a use-case for this situation; further, it can
-probably be solved with having a single container per thread.
-
-What's left to do?
-
- - [x] Name based registrations. Allow giving a registration a unique name, and
- allow resolving services using these unique names.
- - [ ] Thread safety. The internal usage of `std::map` is probably not done in a
- thread-safe manner, I'll need to investigate this futher.
+but I do not currently have a use-case for this situation.
