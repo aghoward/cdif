@@ -5,9 +5,11 @@ namespace cdif {
     class Registrar;
     class Registration;
     class IModule;
+    class ServiceNameFactory;
 };
 
 #include "registration.h"
 #include "registrar.h"
 #include "imodule.h"
+#include "servicenamefactory.h"
 #include "container.h"

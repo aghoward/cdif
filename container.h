@@ -10,21 +10,18 @@
 
 #include "cdif.h"
 
+
 namespace cdif {
     class Container {
         private:
             std::unique_ptr<cdif::Registrar> _registrar;
-
-            template <typename TService>
-            const std::string GetServiceName(const std::string & name) const {
-                if (!name.empty())
-                    return name;
-
-                return typeid(TService).name();
-            }
+            std::unique_ptr<cdif::ServiceNameFactory> _serviceNameFactory;
 
         public:
-            Container() : _registrar(std::move(std::make_unique<cdif::Registrar>())) {};
+            Container() :
+                    _registrar(std::move(std::make_unique<cdif::Registrar>())), 
+                    _serviceNameFactory(std::move(std::make_unique<ServiceNameFactory>()))
+                    {};
 
             virtual ~Container() = default;
 
@@ -91,12 +88,12 @@ namespace cdif {
 
             template <typename TService>
             void Register(const std::function<TService (const cdif::Container &)> & serviceResolver, const std::string & name = "") {
-                _registrar->Register<TService>(serviceResolver, GetServiceName<TService>(name));
+                _registrar->Register<TService>(serviceResolver, _serviceNameFactory->Create<TService>(name));
             }
 
             template <typename TService>
             TService Resolve(const std::string & name = "") const {
-                auto serviceName = GetServiceName<TService>(name);
+                auto serviceName = _serviceNameFactory->Create<TService>(name);
                 const std::unique_ptr<Registration> & registration = _registrar->GetRegistration<TService>(serviceName);
                 return registration->Resolve<TService>(*this);
             }
