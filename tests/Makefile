@@ -1,6 +1,6 @@
 GCC = g++
 CXX_FLAGS = --std=c++17 -I../ -I./mocks
-LIBS = -lgtest_main -lgmock_main -lgtest -lgmock
+LIBS = -lgtest_main -lgmock_main -lgtest -lgmock -lpthread
 
 OBJDIR = ./obj
 TESTOBJS = ${OBJDIR}/registration_tests.o ${OBJDIR}/registrar_tests.o
