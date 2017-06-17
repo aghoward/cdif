@@ -1,9 +1,8 @@
 #pragma once
 
-#include <any>
 #include <functional>
-#include <map>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <typeinfo>
 #include <type_traits>
@@ -16,11 +15,25 @@ namespace cdif {
         private:
             std::unique_ptr<cdif::Registrar> _registrar;
             std::unique_ptr<cdif::ServiceNameFactory> _serviceNameFactory;
+            std::unique_ptr<cdif::PerThreadDependencyChainTracker> _dependencyChain;
+
+            void CheckCircularDependencyResolution(const std::string & name) const {
+                auto count = _dependencyChain->Increment(name);
+                if (count > 1)
+                    throw std::runtime_error("Circular dependecy detected while resolving: " + name);
+            }
+
+            template <typename TService>
+            TService UnguardedResolve(const std::string & serviceName) const {
+                const std::unique_ptr<Registration> & registration = _registrar->GetRegistration<TService>(serviceName);
+                return registration->Resolve<TService>(*this);
+            }
 
         public:
             Container() :
                     _registrar(std::move(std::make_unique<cdif::Registrar>())), 
-                    _serviceNameFactory(std::move(std::make_unique<ServiceNameFactory>()))
+                    _serviceNameFactory(std::move(std::make_unique<cdif::ServiceNameFactory>())),
+                    _dependencyChain(std::move(std::make_unique<cdif::PerThreadDependencyChainTracker>()))
                     {};
 
             virtual ~Container() = default;
@@ -94,8 +107,10 @@ namespace cdif {
             template <typename TService>
             TService Resolve(const std::string & name = "") const {
                 auto serviceName = _serviceNameFactory->Create<TService>(name);
-                const std::unique_ptr<Registration> & registration = _registrar->GetRegistration<TService>(serviceName);
-                return registration->Resolve<TService>(*this);
+                CheckCircularDependencyResolution(serviceName);
+                auto service = UnguardedResolve<TService>(serviceName);
+                _dependencyChain->Clear(serviceName);
+                return service;
             }
     };
 }
