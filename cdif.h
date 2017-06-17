@@ -6,8 +6,11 @@ namespace cdif {
     class Registration;
     class IModule;
     class ServiceNameFactory;
+    class DependencyChainTracker;
+    class PerThreadDependencyChainTracker;
 };
 
+#include "dependencychaintracker.h"
 #include "registration.h"
 #include "registrar.h"
 #include "imodule.h"
