@@ -6,5 +6,6 @@ namespace cdif {
     class IModule {
         public:
             virtual void Load(cdif::Container & ctx) = 0;
+            virtual ~IModule() = default;
     };
 }
