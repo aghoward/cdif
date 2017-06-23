@@ -1,6 +1,6 @@
-GCC = g++
-CXX_FLAGS = --std=c++17 -I../ -I./mocks
-LIBS = -lgtest_main -lgmock_main -lgtest -lgmock -lpthread
+GCC ?= g++
+CXX_FLAGS += --std=c++17 -I../ -I./mocks
+LIBS = -lgtest_main -lgtest -lpthread
 
 OBJDIR = ./obj
 TESTOBJS = ${OBJDIR}/registration_tests.o ${OBJDIR}/registrar_tests.o
@@ -11,7 +11,7 @@ clean:
 	rm -Rf unittests ${OBJDIR}
 
 ${OBJDIR}:
-	if [[ ! -e ${OBJDIR} ]]; then mkdir ${OBJDIR}; fi;
+	if [ ! -e ${OBJDIR} ]; then mkdir ${OBJDIR}; fi;
 
 ${OBJDIR}/%.o: %.cc ${OBJDIR}
 	$(GCC) -o $@ -c ${CXX_FLAGS} $<

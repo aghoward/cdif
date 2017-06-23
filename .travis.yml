@@ -1,0 +1,26 @@
+language: cpp
+notifications:
+    email: false
+dist: trusty
+addons:
+    apt:
+        sources:
+            - sourceline: 'ppa:ubuntu-toolchain-r/test'
+        packages:
+            - g++-7
+            - libgtest-dev
+            - google-mock
+script:
+    - pushd /usr/src/gtest
+    - sudo cmake -DBUILD_SHARED_LIBS=ON .
+    - sudo make
+    - sudo cp *.so* /usr/lib
+    - popd
+    - pushd /usr/src/gmock
+    - sudo cmake -DBUILD_SHARED_LIBS=ON .
+    - sudo make
+    - sudo cp *.so* /usr/lib
+    - popd
+    - GCC=g++-7 make -C tests
+    - tests/unittests
+
