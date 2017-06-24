@@ -74,7 +74,7 @@ namespace cdif {
 
             template <typename TService, typename ... TArgs>
             void RegisterFactory(const std::function<TService(TArgs...)> & factory, const std::string & name = "") {
-                auto serviceResolver = [factory] (const cdif::Container & ctx) { return factory; };
+                auto serviceResolver = [factory] (const cdif::Container &) { return factory; };
                 Register<std::function<TService(TArgs...)>>(serviceResolver, name);
             }
 

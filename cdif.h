@@ -8,7 +8,7 @@ namespace cdif {
     class ServiceNameFactory;
     class DependencyChainTracker;
     class PerThreadDependencyChainTracker;
-};
+}
 
 #include "dependencychaintracker.h"
 #include "registration.h"

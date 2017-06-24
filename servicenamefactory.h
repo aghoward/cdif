@@ -12,5 +12,4 @@ namespace cdif {
                 return typeName;
             }
     };
-};
-
+}

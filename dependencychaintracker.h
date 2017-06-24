@@ -18,7 +18,7 @@ namespace cdif {
 
             size_t Increment(const std::string & name) {
                 auto iter = _dependencyChain.find(name);
-                auto value = (iter == _dependencyChain.end()) ? (size_t)0 : iter->second;
+                auto value = (iter == _dependencyChain.end()) ? static_cast<size_t>(0) : iter->second;
                 _dependencyChain.insert_or_assign(name, ++value);
                 return value;
             }
@@ -59,7 +59,7 @@ namespace cdif {
 
             void CreateChain(size_t id) {
                 std::unique_lock<std::shared_mutex> writeLock(_mutex);
-                auto result = _threadChains.insert_or_assign(id, std::move(std::make_unique<DependencyChainTracker>()));
+                _threadChains.insert_or_assign(id, std::move(std::make_unique<DependencyChainTracker>()));
             }
 
         public:
@@ -84,4 +84,4 @@ namespace cdif {
                 return _threadChains.empty();
             }
     };
-};
+}

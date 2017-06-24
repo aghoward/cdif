@@ -46,7 +46,7 @@ TEST_F(RegistrarTests, GetRegistration_GivenNoMatch_ThrowsException) {
     }
 
     ASSERT_TRUE(exceptionThrown);
-};
+}
 
 TEST_F(RegistrarTests, GetRegistration_GivenMatchingRegistration_ReturnsFunctor) {
     auto name = GivenRegistrationWithThreadUniqueName();
@@ -56,13 +56,14 @@ TEST_F(RegistrarTests, GetRegistration_GivenMatchingRegistration_ReturnsFunctor)
     auto result = registration->Resolve<std::string>(_container);
 
     ASSERT_EQ(expectedValue, result);
-};
+}
 
 TEST_F(RegistrarTests, Registrar_IsThreadSafeBetweenMultipleReadsAndWrites) {
     const auto threadCount = 100;
     auto functor = [&] (){
+        auto tid = GetTid();
         auto name = GivenRegistrationWithThreadUniqueName();
-        auto & registration = _subject.GetRegistration<std::string>(name);
+        _subject.GetRegistration<std::string>(name);
     };
 
     auto threads = std::vector<std::thread>();
@@ -72,4 +73,4 @@ TEST_F(RegistrarTests, Registrar_IsThreadSafeBetweenMultipleReadsAndWrites) {
 
     for (auto & t : threads)
         t.join();
-};
+}
