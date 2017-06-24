@@ -1,6 +1,8 @@
 # cdif
 C++ Dependency Injection Framework
 
+https://travis-ci.org/aghoward/cdif.svg?branch=master
+
 cdif is a light-weight header only dependency injection framework for C++ 17
 
 *Note*: cdif requires a compiler compatible with the not yet finalized C++17
