@@ -11,59 +11,59 @@
 namespace cdif {
     class DependencyChainTracker {
         private:
-            std::map<std::string, size_t> _dependencyChain;
+            std::map<std::string, size_t> m_dependencyChain;
 
         public:
-            DependencyChainTracker() : _dependencyChain(std::map<std::string, size_t>()) {};
+            DependencyChainTracker() : m_dependencyChain(std::map<std::string, size_t>()) {};
 
             size_t Increment(const std::string & name) {
-                auto iter = _dependencyChain.find(name);
-                auto value = (iter == _dependencyChain.end()) ? static_cast<size_t>(0) : iter->second;
-                _dependencyChain.insert_or_assign(name, ++value);
+                auto iter = m_dependencyChain.find(name);
+                auto value = (iter == m_dependencyChain.end()) ? static_cast<size_t>(0) : iter->second;
+                m_dependencyChain.insert_or_assign(name, ++value);
                 return value;
             }
 
             void Clear(const std::string & name) {
-                _dependencyChain.erase(name);
+                m_dependencyChain.erase(name);
             }
 
             bool IsEmpty() const {
-                return _dependencyChain.empty();
+                return m_dependencyChain.empty();
             }
     };
 
     class PerThreadDependencyChainTracker {
         private:
-            std::hash<std::thread::id> _hasher;
-            mutable std::shared_mutex _mutex;
-            std::map<size_t, std::unique_ptr<DependencyChainTracker>> _threadChains;
+            std::hash<std::thread::id> m_hasher;
+            mutable std::shared_mutex m_mutex;
+            std::map<size_t, std::unique_ptr<DependencyChainTracker>> m_threadChains;
 
             size_t GetThreadId() const {
-                return _hasher(std::this_thread::get_id());
+                return m_hasher(std::this_thread::get_id());
             }
 
             std::unique_ptr<DependencyChainTracker> & GetThisChain() {
                 auto id = GetThreadId();
 
-                std::shared_lock<std::shared_mutex> readLock(_mutex);
-                auto iter = _threadChains.find(id);
-                if (iter == _threadChains.end()) {
+                std::shared_lock<std::shared_mutex> readLock(m_mutex);
+                auto iter = m_threadChains.find(id);
+                if (iter == m_threadChains.end()) {
                     readLock.unlock();
                     CreateChain(id);
                     readLock.lock();
-                    iter = _threadChains.find(id);
+                    iter = m_threadChains.find(id);
                 }
                 
                 return iter->second;
             }
 
             void CreateChain(size_t id) {
-                std::unique_lock<std::shared_mutex> writeLock(_mutex);
-                _threadChains.insert_or_assign(id, std::move(std::make_unique<DependencyChainTracker>()));
+                std::unique_lock<std::shared_mutex> writeLock(m_mutex);
+                m_threadChains.insert_or_assign(id, std::move(std::make_unique<DependencyChainTracker>()));
             }
 
         public:
-            PerThreadDependencyChainTracker() : _threadChains(std::map<size_t, std::unique_ptr<DependencyChainTracker>>()) {};
+            PerThreadDependencyChainTracker() : m_threadChains(std::map<size_t, std::unique_ptr<DependencyChainTracker>>()) {};
 
             size_t Increment(const std::string & name) {
                 auto & chain = GetThisChain();
@@ -75,13 +75,13 @@ namespace cdif {
                 chain->Clear(name);
 
                 if (chain->IsEmpty()) {
-                    std::unique_lock<std::shared_mutex> writeLock(_mutex);
-                    _threadChains.erase(GetThreadId());
+                    std::unique_lock<std::shared_mutex> writeLock(m_mutex);
+                    m_threadChains.erase(GetThreadId());
                 }
             }
 
             bool IsEmpty() {
-                return _threadChains.empty();
+                return m_threadChains.empty();
             }
     };
 }

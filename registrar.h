@@ -14,33 +14,33 @@
 namespace cdif {
     class Registrar {
         private:
-            std::map<std::string, std::unique_ptr<cdif::Registration>> _registrations;
-            mutable std::shared_mutex _mutex;
+            std::map<std::string, std::unique_ptr<cdif::Registration>> m_registrations;
+            mutable std::shared_mutex m_mutex;
 
         public:
-            Registrar() : _registrations(std::map<std::string, std::unique_ptr<cdif::Registration>>()) {};
+            Registrar() : m_registrations(std::map<std::string, std::unique_ptr<cdif::Registration>>()) {};
 
             virtual ~Registrar() = default;
 
             Registrar(Registrar && other) {
-                std::shared_lock<std::shared_mutex> lock(_mutex);
-                _registrations = std::move(other._registrations);
+                std::shared_lock<std::shared_mutex> lock(m_mutex);
+                m_registrations = std::move(other.m_registrations);
             }
 
             Registrar & operator=(Registrar && other) {
                 if (this != &other) {
-                    std::shared_lock<std::shared_mutex> lock(_mutex);
-                    _registrations = std::move(other._registrations);
+                    std::shared_lock<std::shared_mutex> lock(m_mutex);
+                    m_registrations = std::move(other.m_registrations);
                 }
                 return *this;
             }
 
             template <typename T>
             const std::unique_ptr<cdif::Registration> & GetRegistration(const std::string & name) const {
-                std::shared_lock<std::shared_mutex> lock(_mutex);
-                auto it = _registrations.find(name);
+                std::shared_lock<std::shared_mutex> lock(m_mutex);
+                auto it = m_registrations.find(name);
 
-                if (it == _registrations.end())
+                if (it == m_registrations.end())
                     throw std::invalid_argument(std::string("Type not registered: ") + typeid(T).name());
 
                 return it->second;
@@ -48,9 +48,9 @@ namespace cdif {
 
             template <typename TService>
             void Register(const std::function<TService (const cdif::Container &)> & serviceResolver, const std::string & name) {
-                std::unique_lock<std::shared_mutex> lock(_mutex);
+                std::unique_lock<std::shared_mutex> lock(m_mutex);
                 auto registration = std::make_unique<Registration>(serviceResolver);
-                _registrations.insert_or_assign(name, std::move(registration));
+                m_registrations.insert_or_assign(name, std::move(registration));
             }
     };
 }
