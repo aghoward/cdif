@@ -13,36 +13,36 @@
 namespace cdif {
     class Container {
         private:
-            std::unique_ptr<cdif::Registrar> _registrar;
-            std::unique_ptr<cdif::ServiceNameFactory> _serviceNameFactory;
-            std::unique_ptr<cdif::PerThreadDependencyChainTracker> _dependencyChain;
+            std::unique_ptr<cdif::Registrar> m_registrar;
+            std::unique_ptr<cdif::ServiceNameFactory> m_serviceNameFactory;
+            std::unique_ptr<cdif::PerThreadDependencyChainTracker> m_dependencyChain;
 
             void CheckCircularDependencyResolution(const std::string & name) const {
-                auto count = _dependencyChain->Increment(name);
+                auto count = m_dependencyChain->Increment(name);
                 if (count > 1)
                     throw std::runtime_error("Circular dependecy detected while resolving: " + name);
             }
 
             template <typename TService>
             TService UnguardedResolve(const std::string & serviceName) const {
-                const std::unique_ptr<Registration> & registration = _registrar->GetRegistration<TService>(serviceName);
+                const std::unique_ptr<Registration> & registration = m_registrar->GetRegistration<TService>(serviceName);
                 return registration->Resolve<TService>(*this);
             }
 
         public:
             Container() :
-                    _registrar(std::move(std::make_unique<cdif::Registrar>())), 
-                    _serviceNameFactory(std::move(std::make_unique<cdif::ServiceNameFactory>())),
-                    _dependencyChain(std::move(std::make_unique<cdif::PerThreadDependencyChainTracker>()))
+                    m_registrar(std::move(std::make_unique<cdif::Registrar>())), 
+                    m_serviceNameFactory(std::move(std::make_unique<cdif::ServiceNameFactory>())),
+                    m_dependencyChain(std::move(std::make_unique<cdif::PerThreadDependencyChainTracker>()))
                     {};
 
             virtual ~Container() = default;
 
-            Container(Container && other) : _registrar(std::move(other._registrar)) {};
+            Container(Container && other) : m_registrar(std::move(other.m_registrar)) {};
 
             Container & operator=(Container && other) {
                 if (this != &other)
-                    _registrar = std::move(other._registrar);
+                    m_registrar = std::move(other.m_registrar);
                 return *this;
             }
 
@@ -101,15 +101,15 @@ namespace cdif {
 
             template <typename TService>
             void Register(const std::function<TService (const cdif::Container &)> & serviceResolver, const std::string & name = "") {
-                _registrar->Register<TService>(serviceResolver, _serviceNameFactory->Create<TService>(name));
+                m_registrar->Register<TService>(serviceResolver, m_serviceNameFactory->Create<TService>(name));
             }
 
             template <typename TService>
             TService Resolve(const std::string & name = "") const {
-                auto serviceName = _serviceNameFactory->Create<TService>(name);
+                auto serviceName = m_serviceNameFactory->Create<TService>(name);
                 CheckCircularDependencyResolution(serviceName);
                 auto service = UnguardedResolve<TService>(serviceName);
-                _dependencyChain->Clear(serviceName);
+                m_dependencyChain->Clear(serviceName);
                 return service;
             }
     };

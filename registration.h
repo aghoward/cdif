@@ -8,11 +8,11 @@
 namespace cdif {
     class Registration {
         private:
-            std::function<std::any(const cdif::Container &)> _resolver;
+            std::function<std::any(const cdif::Container &)> m_resolver;
 
         public:
             Registration(std::function<std::any (const cdif::Container&)> resolver)
-                : _resolver(resolver) {};
+                : m_resolver(resolver) {};
 
             virtual ~Registration() = default;
 
@@ -24,7 +24,7 @@ namespace cdif {
 
             template <typename T>
             T Resolve(const cdif::Container & ctx) const {
-                return std::any_cast<T>(_resolver(ctx));
+                return std::any_cast<T>(m_resolver(ctx));
             }
     };
 }
