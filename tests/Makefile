@@ -1,5 +1,5 @@
 GCC ?= g++
-CXX_FLAGS += --std=c++17 -I../ -I./mocks -Wall -Wextra -Wshadow -Wnon-virtual-dtor -Wold-style-cast -Wcast-align -Wunused -Woverloaded-virtual -pedantic -Wconversion -Wsign-conversion -Wmisleading-indentation
+CXX_FLAGS += --std=c++17 -fconcepts -I../ -I./mocks -Wall -Wextra -Wshadow -Wnon-virtual-dtor -Wold-style-cast -Wcast-align -Wunused -Woverloaded-virtual -pedantic -Wconversion -Wsign-conversion -Wmisleading-indentation
 LIBS = -lgtest_main -lgtest -lpthread
 
 OBJDIR = ./obj
