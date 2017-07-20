@@ -7,7 +7,8 @@ cdif is a light-weight header only dependency injection framework for C++ 17
 
 *Note*: cdif requires a compiler compatible with the not yet finalized C++17
 standard. This means that you will need to compile all code using cdif with the
-`--std=c++17` flag or your compiler's equivalent.
+`--std=c++17` flag or your compiler's equivalent. Additionally it requires
+concepts support (`-fconcepts`).
 
 ## Notes on Compiling
 
@@ -16,8 +17,8 @@ means that your code will be compiling cdif into itself whenever you use it.
 cdif doesn't require any 3rd party libraries, but the thread-safety feature
 makes it rely on `pthread` so you'll need to link that when compiling.
 
-As mentioned above, you'll need to compile against the c++17 standard (for gcc
-7+ this is done with `--std=c++17`).
+As mentioned above, you'll need to compile against the c++17 standard with
+concepts (for gcc 7+ this is done with `--std=c++17 -fconcepts`).
 
 To compile the tests you'll need a copy of googletest, and additionally will
 need to link `gtest` and `gtest_main`. If you have googletest installed all you
@@ -31,7 +32,7 @@ should need to do is run `make` in the tests folder.
    written with the Dependency Inversion Priciple in mind. There is no need to
    rewrite existing classes or add macros to the header files when switching to
    cdif.
- * Works with all types - There is little to no restriction on the types that
+ * Works with all types - There is little no restriction on the types that
    can be used. Want to resolve a `std::function<std::string()>`? No problem.
 
 ## About
@@ -39,15 +40,16 @@ should need to do is run `make` in the tests folder.
 cdif was designed to make use of constructor dependency injection, it won't do
 property injection. The most basic use case is resolve a
 `std::shared_ptr<IType>` where `IType` is an interface (pure virtual class). The
-container can also resolve concrete types (`Type`), factory functions
-(`std::function<TReturn()>`), and singletons (`std::shared_ptr<Type>`).
+container can also resolve concrete types (`Type`), unique pointers 
+(`std::unique_ptr<IType>`), factory functions (`std::function<TReturn()>`), and 
+singletons (`std::shared_ptr<Type>`).
 
 ### Interface Resolution
 
 The most basic use case is class `A` has a dependency on interface `I` and class
 `B` implements `I`. Because `I` is a pure virtual class, class `A` cannot have a
-member variable `I _dependency`, so it has a `std::shared_ptr<I> _dependency`
-which is constructor injected.
+member variable `I m_dependency`, so it has a `std::shared_ptr<I> m_dependency`
+or `std::unique_ptr<I> m_dependency` which is constructor injected.
 
 Without dependency injection, anyone who wants to use class `A`, needs to first
 create a `std::shared_ptr<I>`, then create an `A` instance. With cdif the
@@ -58,24 +60,33 @@ dependency.
  
 ```cpp
 cdif::Container ctx = cdif::Container();
-ctx.RegisterShared<I, B>();
-ctx.RegisterShared<I2, A, std::shared_ptr<I>>();
+ctx.Register<I, B>();
+ctx.Register<I2, A, std::shared_ptr<I>>();
 ```
 
 In this example, we first create a `cdif::Container` object which is the container and
 is responsible for both registrations and resolution. Registrations are unique
 to the instance of the container, so registering a service in one container does
-not register it in another. Next, the `RegisterShared` method is used associate
+not register it in another. Next, the `Register` method is used associate
 class `B` with the interface `I`. After this step any resolution of
 `std::shared_ptr<I>` will be bound to the implementation of B. Finally class 
 `A` is bound to the interface `I2` and will be created using the constructor
 which takes a single argument of type `std::shared_ptr<I>`.
 
-The signature of the interface registration method is:
+In reality, a call to `cdif::Container::Register<TService, TImpl, TDeps...>` 
+will make three unique registrations: `TImpl`, `std::shared_ptr<TService>`, and
+`std::unique_ptr<TService>`. That is, you can resolve the concrete class, or
+either smart pointer to the interface with no additional work.
+
+The signatures of the interface registration methods are:
 
 ```cpp
 template <typename TService, typename TImpl, typename ... TDeps>
-void RegisterShared(const std::string & name = "");
+void Register(const std::string & name = "");
+
+template <typename TService, typename TImpl, typename ... TDeps>
+void Register(std::function<TDeps (const cdif::Container &)> ... depresolvers,
+const std::string & name = "");
 ```
 
 `TService` is the interface which must be requested by a dependency for
@@ -94,16 +105,41 @@ however, this is hidden from the consumer, all that is necessary to resolve
 container takes care of resolving all the dependencies of the implemenation of
 `I2`.
 
+The second signature of the `Register` methods takes a parameter pack of
+functions, one for each dependency of `TImpl`. This allows overriding the
+default behaviour of dependency resolution which is to call `Resolve` for each
+dependency without passing parameters.
+
+Aside from just using the `Register` method, there are also `RegisterShared` and
+`RegisterUnique` for registering `std::shared_ptr<TService>` and
+`std::unique_ptr<TService>` respectively. They each have two signatures that are
+the same as those of `Register`, plus another signature that allows specifying
+the function that creates the resolved type. The default functions used to
+create smart pointers are `std::make_shared` and `std::make_unique`.
+
+```cpp
+template <typename TService, typename TImpl, typename ... TDeps>
+void RegisterShared(std::function<std::shared_ptr<TImpl> (const cdif::Container
+&)> resolver, const std::string & name = "");
+
+template <typename TService, typename TImpl, typename ... TDeps>
+void RegisterUnique(std::function<std::unique_ptr<TImpl> (const cdif::Container
+&)> resolver, const std::string & name = "");
+```
 
 ### Concrete Type Resolution
 
 There are instances where you may want to resolve a class which does not
 implement an interface, but may still have its own dependencies. For this we can
-use the `Register` method, its signature is:
+use the `RegisterType` method, its signature is:
 
 ```cpp
 template <typename TService, typename ... TDeps>
-void Register(const std::string & name = "");
+void RegisterType(const std::string & name = "");
+
+template <typename TService, typename ... TDeps>
+void RegisterType(std::function<TDeps (const cdif::Container &)> ...
+depresolvers, consst std::string & name = "");
 ```
 
 In this case, `TService` is the concrete class we want to register, and `TDeps`
@@ -114,7 +150,7 @@ following registrations:
 ```cpp
 cdif::Container ctx = cdif::Container();
 ctx.RegisterShared<I, B>();
-ctx.Register<A, std::shared_ptr<I>>();
+ctx.RegisterType<A, std::shared_ptr<I>>();
 ```
 
 In this instance, `A` will only be resolved when an instance of `A` is
@@ -183,7 +219,7 @@ in a `std::shared_ptr` that points to the same object.
 
 The above are convenience methods for the most common use-cases, but sometimes
 you need something different. All the aforementioned methods are just wrappers
-around the `Register` method which has the following signature:
+around another `Register` overload which has the following signature:
 
 ```cpp
 template <typename TService>
@@ -195,20 +231,15 @@ pass as `serviceResolver` will be used directly to resolve any requests for
 `TService`. As before, the function you register as `serviceResolver` will be
 copied internally and thus does not need to outlive the container.
 
-There is also a `Register` method for interfaces with the following signature:
-
-```cpp
-template <typename TService, typename TImpl>
-void Register(const std::function<std::shared_ptr<TImpl> (const cdif::Container &)> & resolver, const std::string & name = "");
-```
 
 ### Named Registrations
 
 You may have noticed that all the above mentioned methods of registration take
 an optional parameter `const std::string & name`. By default, all registrations
 that do not specify this value, will be registered under the name provided by
-calling `typeid(TService).name()`. There may only be one registration associated
-with a particular name at a time.
+calling `typeid(TService).name()`. Subsequent registrations can use the same
+name as long they have differing types. Registering the same type twice with the
+same name will overwrite the original registration.
 
 Specifying a value for `name` when registering a component allows more than one
 registration for a given `TService`. Named components can be resolved by
@@ -261,13 +292,6 @@ int main () {
 ```
 
 ## Notes
-
-Resolution of interfaces always results in a `std::shared_ptr<TInterface>`, can
-I get a `std::unique_ptr<TInterface>`? Due to the underlying implementation, the
-short answer is, no. Registrations rely on functions returning `std::any` and
-`std::unique_ptr` does not comply with the restrictions of `std::any`. I simply
-could not come up with a scheme that would allow me to safely register a
-`std::unique_ptr` while still having some useful-ness. 
 
 Most of these registrations result in a new instance of `TService` being created
 for each call to `Resolve<TService>()`. That is, the lifetime scope of these
