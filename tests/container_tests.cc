@@ -152,7 +152,7 @@ TEST_F(ContainerTests, Resolve_GivenRegisteredFactoryWithNoArguments_ReturnsFact
 
 TEST_F(ContainerTests, Resolve_GivenRegisteredFactoryWithSingleArgument_ReturnsFactoryMethod) {
     auto expectedValue = 44;
-    std::function<int(int)> factory = [] (int a) { return a; };
+    auto factory = [] (int a) { return a; };
     _subject.RegisterFactory<int, int>(factory);
 
     auto result = _subject.Resolve<std::function<int(int)>>();
@@ -162,7 +162,7 @@ TEST_F(ContainerTests, Resolve_GivenRegisteredFactoryWithSingleArgument_ReturnsF
 
 TEST_F(ContainerTests, Resolve_GivenRegisteredFactoryWithMultipleArguments_ReturnsFactoryMethod) {
     auto expectedValue = 44;
-    std::function<int(int, int)> factory = [] (int a, int b) { return a * b; };
+    auto factory = [] (int a, int b) { return a * b; };
     _subject.RegisterFactory<int, int, int>(factory);
 
     auto result = _subject.Resolve<std::function<int(int, int)>>();
