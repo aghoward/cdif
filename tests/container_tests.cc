@@ -218,7 +218,29 @@ TEST_F(ContainerTests, Resolve_GivenRegisterSharedWithResolver_CanResolveInterfa
     ASSERT_EQ(expectedValue, result->m_data);
 }
 
-TEST_F(ContainerTests, Resolve_GiveRegisterUnique_CanResolveAsInterface) {
+TEST_F(ContainerTests, Resolve_GivenRegisterSharedWithConcreteType_CanResolveConcreteType) {
+    auto expectedValue = 531;
+    auto dataResolver = [expectedValue] (const cdif::Container &) { return expectedValue; };
+    _subject.Register<int>(dataResolver);
+    _subject.RegisterShared<SimpleImplementation, int>();
+
+    auto result = _subject.Resolve<std::shared_ptr<SimpleImplementation>>();
+
+    ASSERT_EQ(expectedValue, result->m_data);
+}
+
+TEST_F(ContainerTests, Resolve_GivenRegisterSharedWithConcreteTypeAndDependencyResolvers_CanResolveConcreteType) {
+    auto expectedValue = 531;
+    auto dataResolver = [expectedValue] (const cdif::Container &) { return expectedValue; };
+    _subject.RegisterShared<SimpleImplementation, int>(dataResolver);
+
+    auto result = _subject.Resolve<std::shared_ptr<SimpleImplementation>>();
+
+    ASSERT_EQ(expectedValue, result->m_data);
+}
+
+
+TEST_F(ContainerTests, Resolve_GivenRegisterUnique_CanResolveAsInterface) {
     auto expectedValue = 333;
     _subject.Register<int>([expectedValue] (const cdif::Container &) { return expectedValue; });
     _subject.RegisterUnique<Interface, SimpleImplementation, int>();
@@ -248,6 +270,27 @@ TEST_F(ContainerTests, Resolve_GivenRegisterUniqueWithResolver_CanResolveInterfa
     ASSERT_EQ(expectedValue, result->m_data);
 }
 
+TEST_F(ContainerTests, Resolve_GivenRegisterUniqueWithConcreteType_CanResolveConcreteType) {
+    auto expectedValue = 531;
+    auto dataResolver = [expectedValue] (const cdif::Container &) { return expectedValue; };
+    _subject.Register<int>(dataResolver);
+    _subject.RegisterUnique<SimpleImplementation, int>();
+
+    auto result = _subject.Resolve<std::unique_ptr<SimpleImplementation>>();
+
+    ASSERT_EQ(expectedValue, result->m_data);
+}
+
+TEST_F(ContainerTests, Resolve_GivenRegisterUniqueWithConcreteTypeAndDependencyResolvers_CanResolveConcreteType) {
+    auto expectedValue = 531;
+    auto dataResolver = [expectedValue] (const cdif::Container &) { return expectedValue; };
+    _subject.RegisterUnique<SimpleImplementation, int>(dataResolver);
+
+    auto result = _subject.Resolve<std::unique_ptr<SimpleImplementation>>();
+
+    ASSERT_EQ(expectedValue, result->m_data);
+}
+
 TEST_F(ContainerTests, Resolve_GivenRegistrationOfInterface_CanResolveSharedInterface) {
     auto expectedValue = 325;
     auto dataResolver = [expectedValue] (const cdif::Container &) { return expectedValue; };
@@ -272,6 +315,69 @@ TEST_F(ContainerTests, Resolve_GivenRegistrationOfInterface_CanResolveImplementa
     auto expectedValue = 325;
     auto dataResolver = [expectedValue] (const cdif::Container &) { return expectedValue; };
     _subject.Register<Interface, SimpleImplementation, int>(dataResolver);
+
+    auto result = _subject.Resolve<SimpleImplementation>();
+
+    ASSERT_EQ(expectedValue, result.m_data);
+}
+
+TEST_F(ContainerTests, Resolve_GivenRegistrationOfConcreteType_CanResolveSharedConcreteType) {
+    auto expectedValue = 885;
+    auto dataResolver = [expectedValue] (const cdif::Container &) { return expectedValue; };
+    _subject.Register<int>(dataResolver);
+    _subject.Register<SimpleImplementation, int>();
+
+    auto result = _subject.Resolve<std::shared_ptr<SimpleImplementation>>();
+
+    ASSERT_EQ(expectedValue, result->m_data);
+}
+
+TEST_F(ContainerTests, Resolve_GivenRegistrationOfConcreteType_CanResolveUniqueConcreteType) {
+    auto expectedValue = 885;
+    auto dataResolver = [expectedValue] (const cdif::Container &) { return expectedValue; };
+    _subject.Register<int>(dataResolver);
+    _subject.Register<SimpleImplementation, int>();
+
+    auto result = _subject.Resolve<std::unique_ptr<SimpleImplementation>>();
+
+    ASSERT_EQ(expectedValue, result->m_data);
+}
+
+TEST_F(ContainerTests, Resolve_GivenRegistrationOfConcreteType_CanResolveType) {
+    auto expectedValue = 885;
+    auto dataResolver = [expectedValue] (const cdif::Container &) { return expectedValue; };
+    _subject.Register<int>(dataResolver);
+    _subject.Register<SimpleImplementation, int>();
+
+    auto result = _subject.Resolve<SimpleImplementation>();
+
+    ASSERT_EQ(expectedValue, result.m_data);
+}
+
+TEST_F(ContainerTests, Resolve_GivenRegistrationWithDependencyResolvers_CanResolveSharedType) {
+    auto expectedValue = 885;
+    auto dataResolver = [expectedValue] (const cdif::Container &) { return expectedValue; };
+    _subject.Register<SimpleImplementation, int>(dataResolver);
+
+    auto result = _subject.Resolve<std::shared_ptr<SimpleImplementation>>();
+
+    ASSERT_EQ(expectedValue, result->m_data);
+}
+
+TEST_F(ContainerTests, Resolve_GivenRegistrationWithDependencyResolvers_CanResolveUniqueType) {
+    auto expectedValue = 885;
+    auto dataResolver = [expectedValue] (const cdif::Container &) { return expectedValue; };
+    _subject.Register<SimpleImplementation, int>(dataResolver);
+
+    auto result = _subject.Resolve<std::unique_ptr<SimpleImplementation>>();
+
+    ASSERT_EQ(expectedValue, result->m_data);
+}
+
+TEST_F(ContainerTests, Resolve_GivenRegistrationWithDependencyResolvers_CanResolveType) {
+    auto expectedValue = 885;
+    auto dataResolver = [expectedValue] (const cdif::Container &) { return expectedValue; };
+    _subject.Register<SimpleImplementation, int>(dataResolver);
 
     auto result = _subject.Resolve<SimpleImplementation>();
 

@@ -29,6 +29,46 @@ namespace cdif {
                 return registration->Resolve<TService>(*this);
             }
 
+            template <typename TService, typename TImpl, typename ... TDeps>
+            void RegisterInterface(const std::string & name = "") {
+                static_assert(std::is_base_of<TService, TImpl>::value, "Implementation must be derived from Service");
+
+                RegisterShared<TService, TImpl, TDeps...>(name);
+                RegisterUnique<TService, TImpl, TDeps...>(name);
+                RegisterType<TImpl, TDeps...>(name);
+            }
+
+            template <typename TService, typename ... TDeps>
+            void RegisterConcrete(const std::string & name = "") {
+                RegisterShared<TService, TDeps...>(name);
+                RegisterUnique<TService, TDeps...>(name);
+                RegisterType<TService, TDeps...>(name);
+            }
+
+            template <typename TService, typename ... TDeps>
+            void RegisterSharedConcrete(const std::string & name = "") {
+                auto resolver = [] (const cdif::Container & ctx) { return std::make_shared<TService>(ctx.Resolve<TDeps>()...); };
+                Register<std::shared_ptr<TService>>(resolver, name);
+            }
+
+            template <typename TService, typename TImpl, typename ... TDeps>
+            void RegisterSharedInterface(const std::string & name = "") {
+                auto resolver = [] (const cdif::Container & ctx) { return std::make_shared<TImpl>(ctx.Resolve<TDeps>()...); };
+                RegisterShared<TService, TImpl>(resolver, name);
+            }
+
+            template <typename TService, typename TImpl, typename ... TDeps>
+            void RegisterUniqueInterface(const std::string & name = "") {
+                auto resolver = [] (const cdif::Container & ctx) { return std::make_unique<TImpl>(ctx.Resolve<TDeps>()...); };
+                RegisterUnique<TService, TImpl>(resolver, name);
+            }
+
+            template <typename TService, typename ... TDeps>
+            void RegisterUniqueConcrete(const std::string & name = "") {
+                auto resolver = [] (const cdif::Container & ctx) { return std::make_unique<TService>(ctx.Resolve<TDeps>()...); };
+                Register<std::unique_ptr<TService>>(resolver, name);
+            }
+
         public:
             Container() :
                     m_registrar(std::move(std::make_unique<cdif::Registrar>())), 
@@ -46,13 +86,19 @@ namespace cdif {
                 return *this;
             }
 
-            template <typename TService, typename TImpl, typename ... TDeps>
+            template <typename TService, typename ... TDeps>
             void Register(const std::string & name = "") {
-                static_assert(std::is_base_of<TService, TImpl>::value, "Implementation must be derived from Service");
+                if constexpr (std::is_abstract<TService>::value)
+                    RegisterInterface<TService, TDeps...>(name);
+                else
+                    RegisterConcrete<TService, TDeps...>(name);
+            }
 
-                RegisterShared<TService, TImpl, TDeps...>(name);
-                RegisterUnique<TService, TImpl, TDeps...>(name);
-                RegisterType<TImpl, TDeps...>(name);
+            template <typename TService, typename ... TDeps>
+            void Register(std::function<TDeps (const cdif::Container &)> ... depresolvers, const std::string name = "") {
+                RegisterShared<TService, TDeps...>(depresolvers..., name);
+                RegisterUnique<TService, TDeps...>(depresolvers..., name);
+                RegisterType<TService, TDeps...>(depresolvers..., name);
             }
 
             template <typename TService, typename TImpl, typename ... TDeps>
@@ -64,14 +110,22 @@ namespace cdif {
                 RegisterType<TImpl, TDeps...>(depresolvers..., name);
             }
 
-            template <typename TService, typename TImpl, typename ... TDeps>
+            template <typename TService, typename ... TDeps>
             void RegisterShared(const std::string & name = "") {
-                auto resolver = [] (const cdif::Container & ctx) { return std::make_shared<TImpl>(ctx.Resolve<TDeps>()...); };
-                RegisterShared<TService, TImpl>(resolver, name);
+                if constexpr (std::is_abstract<TService>::value)
+                    RegisterSharedInterface<TService, TDeps...>(name);
+                else
+                    RegisterSharedConcrete<TService, TDeps...>(name);
+            }
+
+            template <typename TService, typename ... TDeps>
+            void RegisterShared(const std::function<TDeps (const cdif::Container &)> & ... depresolvers, const std::string & name = "") {
+                auto resolver = [depresolvers...] (const cdif::Container & ctx) { return std::make_shared<TService>(depresolvers(ctx)...); };
+                Register<std::shared_ptr<TService>>(resolver, name);
             }
 
             template <typename TService, typename TImpl, typename ... TDeps>
-            void RegisterShared(const std::function<TDeps (const cdif::Container &)> & ... depresolvers, std::string name = "") {
+            void RegisterShared(const std::function<TDeps (const cdif::Container &)> & ... depresolvers, const std::string & name = "") {
                 auto resolver = [depresolvers...] (const cdif::Container & ctx) { return std::make_shared<TImpl>(depresolvers(ctx)...); };
                 RegisterShared<TService, TImpl>(resolver, name);
             }
@@ -84,10 +138,18 @@ namespace cdif {
                 Register<std::shared_ptr<TService>>(serviceResolver, name);
             }
 
-            template <typename TService, typename TImpl, typename ... TDeps>
+            template <typename TService, typename ... TDeps>
             void RegisterUnique(const std::string & name = "") {
-                auto resolver = [] (const cdif::Container & ctx) { return std::make_unique<TImpl>(ctx.Resolve<TDeps>()...); };
-                RegisterUnique<TService, TImpl>(resolver, name);
+                if constexpr(std::is_abstract<TService>::value)
+                    RegisterUniqueInterface<TService, TDeps...>(name);
+                else
+                    RegisterUniqueConcrete<TService, TDeps...>(name);
+            }
+
+            template <typename TService, typename ... TDeps>
+            void RegisterUnique(const std::function<TDeps (const cdif::Container &)> & ... depresolvers, const std::string & name = "") {
+                auto resolver = [depresolvers...] (const cdif::Container & ctx) { return std::make_unique<TService>(depresolvers(ctx)...); };
+                Register<std::unique_ptr<TService>>(resolver, name);
             }
 
             template <typename TService, typename TImpl, typename ... TDeps>
