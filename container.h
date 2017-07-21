@@ -69,6 +69,20 @@ namespace cdif {
                 Register<std::unique_ptr<TService>>(resolver, name);
             }
 
+            template <typename TService, typename ... TArgs>
+            void RegisterVariadicFactory(const std::function<std::conditional_t<false, void, TService(TArgs...)>> & factory, const std::string & name = "") {
+                auto serviceResolver = [factory] (const cdif::Container &) { return factory; };
+                Register<std::function<TService(TArgs...)>>(serviceResolver, name);
+            }
+
+            template <typename TService>
+            void RegisterNiladicFactory(const std::function<std::conditional_t<false, void, TService()>> & factory, const std::string & name = "") {
+                auto serviceResolver = [factory] (const cdif::Container &) { return factory; };
+                Register<std::function<TService()>>(serviceResolver, name);
+            }
+
+
+
         public:
             Container() :
                     m_registrar(std::move(std::make_unique<cdif::Registrar>())), 
@@ -166,6 +180,14 @@ namespace cdif {
                 Register<std::unique_ptr<TService>>(resolver, name);
             }
 
+            template <typename TService, typename ... TArgs>
+            void RegisterFactory(const std::function<std::conditional_t<false, void, TService(TArgs...)>> & factory, const std::string & name = "") {
+                if constexpr (sizeof...(TArgs) == 0)
+                    RegisterNiladicFactory<TService>(factory, name);
+                else
+                    RegisterVariadicFactory<TService, TArgs...>(factory, name);
+            }
+
             template <typename TService>
             void RegisterInstance(const std::shared_ptr<TService> & instance, const std::string & name = "") {
                 auto resolver = [instance] (const cdif::Container &) { return instance; };
@@ -177,19 +199,6 @@ namespace cdif {
                 auto instance = std::make_shared<TService>(args...);
                 RegisterInstance<TService>(instance, name);
             }
-
-            template <typename TService, typename ... TArgs>
-            void RegisterFactory(const std::function<TService(TArgs...)> & factory, const std::string & name = "") {
-                auto serviceResolver = [factory] (const cdif::Container &) { return factory; };
-                Register<std::function<TService(TArgs...)>>(serviceResolver, name);
-            }
-
-            template <typename TService>
-            void RegisterFactory(const std::function<TService()> & factory, const std::string & name = "") {
-                auto serviceResolver = [factory] (const cdif::Container &) { return factory; };
-                Register<std::function<TService()>>(serviceResolver, name);
-            }
-
             template <typename TModule>
             void RegisterModule() {
                 static_assert(std::is_base_of<IModule, TModule>::value, "Registered modules must derive from IModule.");
