@@ -107,7 +107,7 @@ namespace cdif {
 
             template <typename TService>
             void RegisterInstance(const std::shared_ptr<TService> & instance, const std::string & name = "") {
-                auto resolver = [instance] (const cdif::Container & ctx) { return instance; };
+                auto resolver = [instance] (const cdif::Container &) { return instance; };
                 Register<std::shared_ptr<TService>>(resolver, name);
             }
 
@@ -125,7 +125,7 @@ namespace cdif {
 
             template <typename TService>
             void RegisterFactory(const std::function<TService()> & factory, const std::string & name = "") {
-                auto serviceResolver = [factory] (const cdif::Container & ctx) { return factory; };
+                auto serviceResolver = [factory] (const cdif::Container &) { return factory; };
                 Register<std::function<TService()>>(serviceResolver, name);
             }
 
