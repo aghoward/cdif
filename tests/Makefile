@@ -3,7 +3,7 @@ CXX_FLAGS += --std=c++17 -fconcepts -I../ -I./mocks -Wall -Wextra -Wshadow -Wnon
 LIBS = -lgtest_main -lgtest -lpthread
 
 OBJDIR = ./obj
-TESTOBJS = ${OBJDIR}/registration_tests.o ${OBJDIR}/registrar_tests.o
+TESTOBJS = ${OBJDIR}/registration_tests.o ${OBJDIR}/registrar_tests.o ${OBJDIR}/container_tests.o 
 
 all: unittests
 
