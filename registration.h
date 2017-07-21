@@ -12,14 +12,13 @@ namespace cdif {
             std::function<std::any(const cdif::Container &)> m_resolver;
 
         public:
-            Registration(std::function<std::any (const cdif::Container &)> resolver)
-                : m_resolver(resolver) {};
-
             template <typename T>
             Registration(std::function<T (const cdif::Container &)> resolver)
-                requires !std::is_copy_constructible<T>::value && std::is_move_constructible<T>::value
             {
-                m_resolver = [resolver] (const cdif::Container &) { return resolver; };
+                if constexpr (!std::is_copy_constructible<T>::value)
+                    m_resolver = [resolver] (const cdif::Container &) { return resolver; };
+                else
+                    m_resolver = resolver;
             }
 
             virtual ~Registration() = default;
@@ -29,18 +28,15 @@ namespace cdif {
             Registration(Registration &&) = default;
             Registration & operator=(Registration &&) = default;
 
-
-            template <typename T>
-            T Resolve(const cdif::Container & ctx) const {
-                return std::any_cast<T>(m_resolver(ctx));
-            }
-
             template <typename T>
             T Resolve(const cdif::Container & ctx) const
-                requires !std::is_copy_constructible<T>::value && std::is_move_constructible<T>::value
             {
-                auto resolver = std::any_cast<std::function<T (const cdif::Container &)>>(m_resolver(ctx));
-                return std::move(resolver(ctx));
+                if constexpr (!std::is_copy_constructible<T>::value) {
+                    auto resolver = std::any_cast<std::function<T (const cdif::Container &)>>(m_resolver(ctx));
+                    return std::move(resolver(ctx));
+                } else {
+                    return std::any_cast<T>(m_resolver(ctx));
+                }
             }
     };
 }
