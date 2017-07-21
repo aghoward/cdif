@@ -13,7 +13,7 @@ namespace cdif {
 
         public:
             template <typename T>
-            Registration(std::function<T (const cdif::Container &)> resolver)
+            Registration(const std::function<T (const cdif::Container &)> & resolver)
             {
                 if constexpr (!std::is_copy_constructible<T>::value)
                     m_resolver = [resolver] (const cdif::Container &) { return resolver; };
