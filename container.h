@@ -69,20 +69,6 @@ namespace cdif {
                 Register<std::unique_ptr<TService>>(resolver, name);
             }
 
-            template <typename TService, typename ... TArgs>
-            void RegisterVariadicFactory(const std::function<std::conditional_t<false, void, TService(TArgs...)>> & factory, const std::string & name = "") {
-                auto serviceResolver = [factory] (const cdif::Container &) { return factory; };
-                Register<std::function<TService(TArgs...)>>(serviceResolver, name);
-            }
-
-            template <typename TService>
-            void RegisterNiladicFactory(const std::function<std::conditional_t<false, void, TService()>> & factory, const std::string & name = "") {
-                auto serviceResolver = [factory] (const cdif::Container &) { return factory; };
-                Register<std::function<TService()>>(serviceResolver, name);
-            }
-
-
-
         public:
             Container() :
                     m_registrar(std::move(std::make_unique<cdif::Registrar>())), 
@@ -181,11 +167,9 @@ namespace cdif {
             }
 
             template <typename TService, typename ... TArgs>
-            void RegisterFactory(const std::function<std::conditional_t<false, void, TService(TArgs...)>> & factory, const std::string & name = "") {
-                if constexpr (sizeof...(TArgs) == 0)
-                    RegisterNiladicFactory<TService>(factory, name);
-                else
-                    RegisterVariadicFactory<TService, TArgs...>(factory, name);
+            void RegisterFactory(const std::function<std::conditional_t<sizeof...(TArgs) == 0, TService (), TService (TArgs...)>> & factory, const std::string & name = "") {
+                auto serviceResolver = [factory] (const cdif::Container &) { return factory; };
+                Register<std::function<std::conditional_t<sizeof...(TArgs) == 0, TService (), TService (TArgs...)>>>(serviceResolver, name);
             }
 
             template <typename TService>
