@@ -10,7 +10,7 @@ class RegistrationTests : public ::testing::Test {
         cdif::Container _container;
         double _returnedValue = 3.14;
 
-        std::function<std::any (const cdif::Container &)> _resolver;
+        std::function<double (const cdif::Container &)> _resolver;
 
     public:
         RegistrationTests() {
