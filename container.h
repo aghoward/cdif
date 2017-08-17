@@ -10,6 +10,9 @@
 #include "cdif.h"
 
 
+template <typename TReturn, typename ... TArgs>
+using Factory = std::function<std::conditional_t<sizeof...(TArgs) == 0, TReturn (), TReturn (TArgs...)>>;
+
 namespace cdif {
     class Container {
         private:
@@ -94,14 +97,14 @@ namespace cdif {
                     RegisterConcrete<TService, TDeps...>(name);
             }
 
-            template <typename TService, typename ... TDeps>
+            template <typename TService, typename ... TDeps, typename = std::enable_if_t<sizeof...(TDeps), TService>>
             void Register(std::function<TDeps (const cdif::Container &)> ... depresolvers, const std::string name = "") {
                 RegisterShared<TService, TDeps...>(depresolvers..., name);
                 RegisterUnique<TService, TDeps...>(depresolvers..., name);
                 RegisterType<TService, TDeps...>(depresolvers..., name);
             }
 
-            template <typename TService, typename TImpl, typename ... TDeps>
+            template <typename TService, typename TImpl, typename ... TDeps, typename = std::enable_if_t<sizeof...(TDeps), TService>>
             void Register(std::function<TDeps (const cdif::Container &)> ... depresolvers, const std::string name = "") {
                 static_assert(std::is_base_of<TService, TImpl>::value, "Implementation must be derived from Service");
 
@@ -118,13 +121,13 @@ namespace cdif {
                     RegisterSharedConcrete<TService, TDeps...>(name);
             }
 
-            template <typename TService, typename ... TDeps>
+            template <typename TService, typename ... TDeps, typename = std::enable_if_t<sizeof...(TDeps), TService>>
             void RegisterShared(const std::function<TDeps (const cdif::Container &)> & ... depresolvers, const std::string & name = "") {
                 auto resolver = [depresolvers...] (const cdif::Container & ctx) { return std::make_shared<TService>(depresolvers(ctx)...); };
                 Register<std::shared_ptr<TService>>(resolver, name);
             }
 
-            template <typename TService, typename TImpl, typename ... TDeps>
+            template <typename TService, typename TImpl, typename ... TDeps, typename = std::enable_if_t<sizeof...(TDeps), TService>>
             void RegisterShared(const std::function<TDeps (const cdif::Container &)> & ... depresolvers, const std::string & name = "") {
                 auto resolver = [depresolvers...] (const cdif::Container & ctx) { return std::make_shared<TImpl>(depresolvers(ctx)...); };
                 RegisterShared<TService, TImpl>(resolver, name);
@@ -146,13 +149,13 @@ namespace cdif {
                     RegisterUniqueConcrete<TService, TDeps...>(name);
             }
 
-            template <typename TService, typename ... TDeps>
+            template <typename TService, typename ... TDeps, typename = std::enable_if_t<sizeof...(TDeps), TService>>
             void RegisterUnique(const std::function<TDeps (const cdif::Container &)> & ... depresolvers, const std::string & name = "") {
                 auto resolver = [depresolvers...] (const cdif::Container & ctx) { return std::make_unique<TService>(depresolvers(ctx)...); };
                 Register<std::unique_ptr<TService>>(resolver, name);
             }
 
-            template <typename TService, typename TImpl, typename ... TDeps>
+            template <typename TService, typename TImpl, typename ... TDeps, typename = std::enable_if_t<sizeof...(TDeps), TService>>
             void RegisterUnique(const std::function<TDeps (const cdif::Container &)> & ... depresolvers, const std::string & name = "") {
                 auto resolver = [depresolvers...] (const cdif::Container & ctx) { return std::make_unique<TImpl>(depresolvers(ctx)...); };
                 RegisterUnique<TService, TImpl>(resolver, name);
@@ -167,9 +170,9 @@ namespace cdif {
             }
 
             template <typename TService, typename ... TArgs>
-            void RegisterFactory(const std::function<std::conditional_t<sizeof...(TArgs) == 0, TService (), TService (TArgs...)>> & factory, const std::string & name = "") {
+            void RegisterFactory(const Factory<TService, TArgs...> & factory, const std::string & name = "") {
                 auto serviceResolver = [factory] (const cdif::Container &) { return factory; };
-                Register<std::function<std::conditional_t<sizeof...(TArgs) == 0, TService (), TService (TArgs...)>>>(serviceResolver, name);
+                Register<Factory<TService, TArgs...>>(serviceResolver, name);
             }
 
             template <typename TService>
@@ -198,7 +201,7 @@ namespace cdif {
                 Register<TService>(resolver, name);
             }
 
-            template <typename TService, typename ... TDeps>
+            template <typename TService, typename ... TDeps, typename = std::enable_if_t<sizeof...(TDeps), TService>>
             void RegisterType(const std::function<TDeps (const cdif::Container &)> & ... depresolvers, const std::string name = "") {
                 auto resolver = [depresolvers...] (const cdif::Container & ctx) { return TService(depresolvers(ctx)...); };
                 Register<TService>(resolver, name);
