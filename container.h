@@ -10,6 +10,9 @@
 #include "cdif.h"
 
 
+template <typename TReturn, typename ... TArgs>
+using Factory = std::function<std::conditional_t<sizeof...(TArgs) == 0, TReturn (), TReturn (TArgs...)>>;
+
 namespace cdif {
     class Container {
         private:
@@ -167,9 +170,9 @@ namespace cdif {
             }
 
             template <typename TService, typename ... TArgs>
-            void RegisterFactory(const std::function<std::conditional_t<sizeof...(TArgs) == 0, TService (), TService (TArgs...)>> & factory, const std::string & name = "") {
+            void RegisterFactory(const Factory<TService, TArgs...> & factory, const std::string & name = "") {
                 auto serviceResolver = [factory] (const cdif::Container &) { return factory; };
-                Register<std::function<std::conditional_t<sizeof...(TArgs) == 0, TService (), TService (TArgs...)>>>(serviceResolver, name);
+                Register<Factory<TService, TArgs...>>(serviceResolver, name);
             }
 
             template <typename TService>
