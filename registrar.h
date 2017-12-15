@@ -22,12 +22,14 @@ namespace cdif {
 
             virtual ~Registrar() = default;
 
-            Registrar(Registrar && other) {
+            Registrar(Registrar&& other)
+            {
                 std::shared_lock<std::shared_mutex> lock(m_mutex);
                 m_registrations = std::move(other.m_registrations);
             }
 
-            Registrar & operator=(Registrar && other) {
+            Registrar& operator=(Registrar&& other)
+            {
                 if (this != &other) {
                     std::shared_lock<std::shared_mutex> lock(m_mutex);
                     m_registrations = std::move(other.m_registrations);
@@ -36,7 +38,8 @@ namespace cdif {
             }
 
             template <typename T>
-            const std::unique_ptr<cdif::Registration> & GetRegistration(const std::string & name) const {
+            const std::unique_ptr<cdif::Registration>& getRegistration(const std::string& name) const
+            {
                 std::shared_lock<std::shared_mutex> lock(m_mutex);
                 auto it = m_registrations.find(name);
 
@@ -46,10 +49,10 @@ namespace cdif {
                 return it->second;
             }
 
-            template <typename TService>
-            void Register(const std::function<TService (const cdif::Container &)> & serviceResolver, const std::string & name) {
+            void bind(const Registration& reg, const std::string& name)
+            {
                 std::unique_lock<std::shared_mutex> lock(m_mutex);
-                auto registration = std::make_unique<Registration>(serviceResolver);
+                auto registration = std::make_unique<Registration>(reg);
                 m_registrations.insert_or_assign(name, std::move(registration));
             }
     };
