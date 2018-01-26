@@ -22,6 +22,19 @@ class SimpleImplementation : public Interface {
         void DoThings() {};
 };
 
+class NonCopyable
+{
+    public:
+        int m_a;
+
+        NonCopyable(int a) : m_a(a) {}
+
+        NonCopyable(const NonCopyable&) = delete;
+        NonCopyable& operator=(const NonCopyable&) = delete;
+        NonCopyable(NonCopyable&&) = default;
+        NonCopyable& operator=(NonCopyable&&) = default;
+};
+
 class SharedImplementationDecorator : public Interface {
     private:
         std::shared_ptr<Interface> m_decorated;

@@ -10,6 +10,7 @@ addons:
             - g++-7
             - libgtest-dev
             - google-mock
+            - cmake
 script:
     - pushd /usr/src/gtest
     - sudo cmake -DBUILD_SHARED_LIBS=ON .
