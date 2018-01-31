@@ -12,7 +12,7 @@ namespace cdif {
     class InterfaceRegistrationBuilder : public RegistrationBuilder<TScope, TService, TCtorArgs...>
     {
         private:
-            typedef std::array<std::function<std::any (const Container&)>, sizeof...(TCtorArgs)> ResolverCollection;
+            typedef std::array<std::function<std::any ()>, sizeof...(TCtorArgs)> ResolverCollection;
 
             template <typename TRet, typename Indices = std::make_index_sequence<sizeof...(TCtorArgs)>>
             void buildRegistrationFrom(
