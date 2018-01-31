@@ -10,16 +10,19 @@
 
 namespace cdif {
     template <typename TService>
-    static const std::function<std::any (const Container&)> defaultResolver()
+    static const std::function<std::any ()> defaultResolver()
     {
-        return [] (const Container& ctx) { return ctx.template resolve<TService>(); };
+        return [] () -> std::function<TService (const Container&)>
+        {
+            return [] (const Container& ctx) { return ctx.template resolve<TService>(); };
+        };
     }
 
     template <Scope TScope, typename TService, typename ... TCtorArgs>
     class RegistrationBuilder
     {
         protected:
-            typedef std::array<std::function<std::any (const Container&)>, sizeof...(TCtorArgs)> ResolverCollection;
+            typedef std::array<std::function<std::any ()>, sizeof...(TCtorArgs)> ResolverCollection;
 
             Container* m_ctx;
             ResolverCollection m_dependencyResolvers;
@@ -77,7 +80,7 @@ namespace cdif {
             {
                 static_assert(type_at_index_matches<Index, TDependency, TCtorArgs...>(),
                     "Constructor argument at that index does not match function return type");
-                m_dependencyResolvers[Index] = resolver;
+                m_dependencyResolvers[Index] = [resolver] () { return resolver; };
                 return *this;
             }
 

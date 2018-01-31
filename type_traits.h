@@ -127,9 +127,9 @@ namespace cdif
 
     template <typename TDep, size_t Index, size_t FuncCount>
     static const std::function<TDep (const Container&)> getResolverAtIndex(
-        const std::array<std::function<std::any (const cdif::Container&)>, FuncCount>& resolvers)
+        const std::array<std::function<std::any ()>, FuncCount>& resolvers)
     {
-        auto func = resolvers[Index];
-        return [func] (const cdif::Container& ctx) { return std::any_cast<TDep>(func(ctx)); };
+        auto func = resolvers[Index]();
+        return std::any_cast<std::function<TDep (const Container&)>>(func);
     }
 }

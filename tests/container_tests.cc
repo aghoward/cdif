@@ -375,3 +375,14 @@ TEST_F(ContainerTests, Resolve_GivenPerThreadRegistration_ResolvesSingleInstance
     auto t = std::thread(functor);
     t.join();
 }
+
+TEST_F(ContainerTests, Resolve_GivenTypeWithDependencyOnNonCopyableType_CanResolveContainer)
+{
+    givenRegistrationReturningValue(342);
+    _subject.bind<SimpleImplementation, int>().as<Interface>().build();
+    _subject.bind<UniqueImplementationDecorator, int, std::unique_ptr<Interface>>().build();
+
+    auto result = _subject.resolve<UniqueImplementationDecorator>();
+
+    ASSERT_NE(&result, nullptr);
+}
