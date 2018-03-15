@@ -13,9 +13,9 @@ namespace cdif {
     static const std::function<std::any ()> defaultResolver()
     {
         return [] () -> std::function<TService (const Container&)>
-        {
-            return [] (const Container& ctx) { return ctx.template resolve<TService>(); };
-        };
+            {
+                return [] (const Container& ctx) -> TService { return ctx.template resolve<TService>(); };
+            };
     }
 
     template <Scope TScope, typename TService, typename ... TCtorArgs>

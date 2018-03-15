@@ -65,6 +65,12 @@ namespace cdif {
                 return FactoryRegistrationBuilder<DefaultScope, remove_cvref_t<TReturn>, TArgs...>(this, factory, "");
             }
 
+            template <typename TService, typename ... TImplementations>
+            auto bindList()
+            {
+                return ListRegistrationBuilder<DefaultScope, TService, TImplementations...>(this);
+            }
+
             template <typename TService>
             void bind(const Registration& registration, const std::string& name)
             {

@@ -27,10 +27,13 @@ namespace cdif {
 
     template <Scope TScope, typename TReturn, typename ... TArgs>
     class FactoryRegistrationBuilder;
+    
+    template <Scope TScope, typename TService, typename ... TImplementations>
+    class ListRegistrationBuilder;
 }
 
-#include "typefactories.h"
 #include "type_traits.h"
+#include "typefactories.h"
 #include "scopedtypefactories.h"
 #include "dependencychaintracker.h"
 #include "registration.h"
@@ -42,3 +45,4 @@ namespace cdif {
 #include "builders/typeregistrationbuilder.h"
 #include "builders/interfaceregistrationbuilder.h"
 #include "builders/factoryregistrationbuilder.h"
+#include "builders/listregistrationbuilder.h"
