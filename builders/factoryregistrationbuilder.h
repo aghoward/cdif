@@ -14,6 +14,15 @@ namespace cdif {
             typedef std::function<TReturn (TArgs...)> TService;
             TService m_factory;
 
+            template <typename T>
+            constexpr auto getScopedFactoryFactory() const
+            {
+                if constexpr (TScope == Scope::Singleton)
+                    return createSingletonFactory<T, TArgs...>;
+                else if constexpr (TScope == Scope::PerThread)
+                    return createThreadLocalFactory<T, TArgs...>;
+            }
+
             void buildImpl()
             {
                 auto factoryCopy = m_factory;
@@ -28,30 +37,27 @@ namespace cdif {
             }
 
             template <typename T>
-            std::function<T (const Container&)> buildScopedFactory(
-                const std::function<TService (const Container&)>& factory) const
+            void buildScopedFactoryFrom(TService factory) const
             {
-                std::function scopedFactory = this->template getScopedFactory<T>();
-                return [factory, scopedFactory] (const Container& ctx) -> decltype(auto)
-                    {
-                        return scopedFactory(factory, ctx); 
-                    };
+                auto scopedFactoryFactory = getScopedFactoryFactory<T>();
+                std::function scopedFactory = [factory, scopedFactoryFactory] (TArgs...args) -> T
+                {
+                    return scopedFactoryFactory(factory, std::forward<TArgs>(args)...);
+                };
+
+                std::function f = [scopedFactory] (const Container&)
+                {
+                    return scopedFactory;
+                };
+                this->m_ctx->template bind<std::function<T (TArgs...)>>(Registration(f), this->m_name);
             }
 
-            template <typename T>
-            void buildScopedFactoryFrom(const std::function<TService (const Container&)>& factory) const
-            {
-                this->m_ctx->template bind<T>(Registration(buildScopedFactory<T>(factory)), this->m_name);
-            }
 
             void buildScoped() const
             {
-                auto factoryCopy = m_factory;
-                std::function factory = [factoryCopy] (const Container&) { return factoryCopy; };
-
-                buildScopedFactoryFrom<TService&>(factory);
-                buildScopedFactoryFrom<TService*>(factory);
-                buildScopedFactoryFrom<std::shared_ptr<TService>>(factory);
+                buildScopedFactoryFrom<TReturn&>(m_factory);
+                buildScopedFactoryFrom<TReturn*>(m_factory);
+                buildScopedFactoryFrom<std::shared_ptr<TReturn>>(m_factory);
             }
 
         public:
@@ -73,7 +79,7 @@ namespace cdif {
             template <Scope TNewScope>
             auto in()
             {
-                return FactoryRegistrationBuilder<TNewScope, TReturn, TArgs...>(this->ctx, this->m_factory, this->m_name);
+                return FactoryRegistrationBuilder<TNewScope, TReturn, TArgs...>(this->m_ctx, this->m_factory, this->m_name);
             }
     };
 }
