@@ -83,7 +83,7 @@ namespace cdif {
             {
                 static_assert(std::is_base_of_v<IModule, TModule>, "TModule must derive IModule");
                 auto module = TModule();
-                static_cast<IModule*>(&module)->load(*this);
+                module.load(*this);
             }
 
             template <typename TService>
