@@ -5,8 +5,8 @@
 #include <functional>
 #include <memory>
 #include <optional>
-#include <utility>
 #include <type_traits>
+#include <utility>
 
 namespace cdif
 {
@@ -28,13 +28,13 @@ namespace cdif
     template <typename T>
     using remove_cvref_pointer_t = typename remove_cvref_pointer<T>::type;
 
-    template <typename T, template <typename> typename C>
+    template <typename T, template <typename...> typename C>
     struct is_ptr_type
     {
-        template <typename U, template <typename> typename X>
+        template <typename U, template <typename...> typename X>
         static decltype(std::is_same<U, X<typename U::element_type>>{}) matches(std::remove_reference<U>*);
 
-        template <typename U, template <typename> typename X>
+        template <typename U, template <typename...> typename X>
         static std::false_type matches(...);
 
         using type = decltype(matches<remove_cvref_t<T>, C>(nullptr));
@@ -42,7 +42,7 @@ namespace cdif
         static constexpr bool value = { type::value };
     };
 
-    template <typename T, template <typename> typename C>
+    template <typename T, template <typename...> typename C>
     inline constexpr bool is_ptr_type_v = is_ptr_type<T, C>::value;
 
     template <typename T>

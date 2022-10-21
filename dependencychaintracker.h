@@ -67,7 +67,7 @@ namespace cdif {
             void createChain(size_t id)
             {
                 std::unique_lock<std::shared_mutex> writeLock(m_mutex);
-                m_threadChains.insert_or_assign(id, std::move(std::make_unique<DependencyChainTracker>()));
+                m_threadChains.insert_or_assign(id, std::make_unique<DependencyChainTracker>());
             }
 
         public:
