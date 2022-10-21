@@ -4,8 +4,8 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
-#include <typeinfo>
 #include <type_traits>
+#include <typeinfo>
 
 #include "cdif.h"
 
@@ -35,9 +35,9 @@ namespace cdif {
 
        public:
             Container() :
-                    m_registrar(std::move(std::make_unique<cdif::Registrar>())), 
-                    m_serviceNameFactory(std::move(std::make_unique<cdif::ServiceNameFactory>())),
-                    m_dependencyChain(std::move(std::make_unique<cdif::PerThreadDependencyChainTracker>()))
+                    m_registrar(std::make_unique<cdif::Registrar>()),
+                    m_serviceNameFactory(std::make_unique<cdif::ServiceNameFactory>()),
+                    m_dependencyChain(std::make_unique<cdif::PerThreadDependencyChainTracker>())
                     {};
 
             virtual ~Container() = default;

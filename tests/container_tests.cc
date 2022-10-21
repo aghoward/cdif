@@ -57,7 +57,7 @@ TEST_F(ContainerTests, Resolve_GivenCircularDependency_ThrowsException)
 
     try {
         _subject.resolve<SharedImplementationDecorator>();
-    } catch (std::runtime_error e) {
+    } catch (std::runtime_error& e) {
         exceptionThrown = true;
     }
 
