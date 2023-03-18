@@ -1,0 +1,37 @@
+[
+{
+  "directory": "/home/howard/repos/cdif/build/tests",
+  "command": "/usr/bin/c++  -I/home/howard/repos/cdif/tests -I/home/howard/repos/cdif/include  -o CMakeFiles/tests.dir/container_tests.cc.o -c /home/howard/repos/cdif/tests/container_tests.cc",
+  "file": "/home/howard/repos/cdif/tests/container_tests.cc"
+},
+{
+  "directory": "/home/howard/repos/cdif/build/tests",
+  "command": "/usr/bin/c++  -I/home/howard/repos/cdif/tests -I/home/howard/repos/cdif/include  -o CMakeFiles/tests.dir/factoryregistrationbuilder_tests.cc.o -c /home/howard/repos/cdif/tests/factoryregistrationbuilder_tests.cc",
+  "file": "/home/howard/repos/cdif/tests/factoryregistrationbuilder_tests.cc"
+},
+{
+  "directory": "/home/howard/repos/cdif/build/tests",
+  "command": "/usr/bin/c++  -I/home/howard/repos/cdif/tests -I/home/howard/repos/cdif/include  -o CMakeFiles/tests.dir/interfaceregistrationbuilder_tests.cc.o -c /home/howard/repos/cdif/tests/interfaceregistrationbuilder_tests.cc",
+  "file": "/home/howard/repos/cdif/tests/interfaceregistrationbuilder_tests.cc"
+},
+{
+  "directory": "/home/howard/repos/cdif/build/tests",
+  "command": "/usr/bin/c++  -I/home/howard/repos/cdif/tests -I/home/howard/repos/cdif/include  -o CMakeFiles/tests.dir/listregistrationbuilder_tests.cc.o -c /home/howard/repos/cdif/tests/listregistrationbuilder_tests.cc",
+  "file": "/home/howard/repos/cdif/tests/listregistrationbuilder_tests.cc"
+},
+{
+  "directory": "/home/howard/repos/cdif/build/tests",
+  "command": "/usr/bin/c++  -I/home/howard/repos/cdif/tests -I/home/howard/repos/cdif/include  -o CMakeFiles/tests.dir/registrar_tests.cc.o -c /home/howard/repos/cdif/tests/registrar_tests.cc",
+  "file": "/home/howard/repos/cdif/tests/registrar_tests.cc"
+},
+{
+  "directory": "/home/howard/repos/cdif/build/tests",
+  "command": "/usr/bin/c++  -I/home/howard/repos/cdif/tests -I/home/howard/repos/cdif/include  -o CMakeFiles/tests.dir/registration_tests.cc.o -c /home/howard/repos/cdif/tests/registration_tests.cc",
+  "file": "/home/howard/repos/cdif/tests/registration_tests.cc"
+},
+{
+  "directory": "/home/howard/repos/cdif/build/tests",
+  "command": "/usr/bin/c++  -I/home/howard/repos/cdif/tests -I/home/howard/repos/cdif/include  -o CMakeFiles/tests.dir/typeregistrationbuilder_tests.cc.o -c /home/howard/repos/cdif/tests/typeregistrationbuilder_tests.cc",
+  "file": "/home/howard/repos/cdif/tests/typeregistrationbuilder_tests.cc"
+}
+]

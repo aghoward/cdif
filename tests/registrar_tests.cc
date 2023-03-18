@@ -7,7 +7,7 @@
 
 #include <gtest/gtest.h>
 
-#include "cdif.h"
+#include "cdif/cdif.h"
 
 class RegistrarTests : public ::testing::Test
 {

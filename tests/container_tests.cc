@@ -5,7 +5,7 @@
 
 #include <gtest/gtest.h>
 
-#include "cdif.h"
+#include "cdif/cdif.h"
 #include "test_types.h"
 
 class ContainerTests : public ::testing::Test

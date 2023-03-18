@@ -9,7 +9,7 @@
 #include <string>
 #include <utility>
 
-#include "cdif.h"
+#include "cdif/cdif.h"
 
 namespace cdif {
     class Registrar {

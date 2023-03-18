@@ -7,7 +7,7 @@
 #include <type_traits>
 #include <typeinfo>
 
-#include "cdif.h"
+#include "cdif/cdif.h"
 
 namespace cdif {
     class Container

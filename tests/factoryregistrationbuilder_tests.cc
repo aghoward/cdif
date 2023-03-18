@@ -1,4 +1,4 @@
-#include "cdif.h"
+#include "cdif/cdif.h"
 #include "test_types.h"
 
 #include <gtest/gtest.h>

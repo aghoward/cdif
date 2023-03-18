@@ -3,7 +3,7 @@
 
 #include <gtest/gtest.h>
 
-#include "cdif.h"
+#include "cdif/cdif.h"
 
 class RegistrationTests : public ::testing::Test
 {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "cdif.h"
+#include "cdif/cdif.h"
 
 #include <functional>
 #include <memory>

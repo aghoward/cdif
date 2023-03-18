@@ -4,7 +4,7 @@
 #include <functional>
 #include <type_traits>
 
-#include "cdif.h"
+#include "cdif/cdif.h"
 
 namespace cdif {
     class Registration
